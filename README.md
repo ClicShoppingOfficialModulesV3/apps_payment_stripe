@@ -1,4 +1,4 @@
-# apps_payment_square
+# apps_payment_stripe
 
 The Stripe payment plugin module allows you to connect your Stripe account to your online store.
 The payment gateway is operated by Stripe,<br /><br />
