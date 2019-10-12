@@ -5,6 +5,7 @@ The payment gateway is operated by Stripe,<br /><br />
 https://www.stripe.com
 
 Important Note :
+You have installed composer on your server
 You must have an account to Stripe.
 You site must have a valid ssl certificate
 A help section is including inside the apps to help you to configure your account and Apps
