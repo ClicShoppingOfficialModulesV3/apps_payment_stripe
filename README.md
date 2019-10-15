@@ -20,6 +20,7 @@ or via the Menu/Configuration/Payment
 Activate the module in Payment
 Copy the apps_payment_stripe.json into ClicShopping/Work/Cache/Github (manual installation)
 
+Use composer with auto instalation else composer require ('stripe/stripe-php');  in your shop directory in your terminal
 
 
 See Marketplace for all informations
