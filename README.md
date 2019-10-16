@@ -21,6 +21,17 @@ or via the Menu/Configuration/Payment
 Activate the module in Payment
 Copy the apps_payment_stripe.json into ClicShopping/Work/Cache/Github (manual installation)
 
+Important note :
+- To use this apps, you must install composer on your local server or your server (apt-get install composer for linux).
+- The exec function must be authorised by your hoster else the auto installation will not work (for the libray but the apps will be installed).
+- To install manually the library
+Inside the shop directory (where there is composer.json file)
+
+composer require stripe/stripe-php ==> installation
+composer update stripe/stripe-php ==> update
+composer remove stripe/stripe-php ==> remove
+
+Once this installaton is made, you can set the apps.
 
 
 See Marketplace for all informations
