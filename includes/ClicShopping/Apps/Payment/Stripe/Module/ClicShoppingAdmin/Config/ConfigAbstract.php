@@ -15,17 +15,18 @@
   use ClicShopping\OM\CLICSHOPPING;
 
   abstract class ConfigAbstract {
-    protected $app;
+    protected mixed $app;
 
-    public $code;
+    public string $code;
     public $title;
-    public $short_title;
-    public $introduction;
-    public $req_notes = [];
-    public $is_installed = false;
-    public $is_uninstallable = false;
-    public $is_migratable = false;
-    public $sort_order = 0;
+    public string $short_title;
+    public string $introduction;
+    public array $req_notes = [];
+    public bool $is_installed = false;
+    public bool $is_uninstallable = false;
+    public bool $is_migratable = false;
+    public ?int $sort_order = 0;
+    public $group;
 
     abstract protected function init();
 
@@ -38,7 +39,7 @@
     }
 
     public function install() {
-      $cut_length = strlen('CLICSHOPPING_APP_STRIPE_' . $this->code . '_');
+      $cut_length = \strlen('CLICSHOPPING_APP_STRIPE_' . $this->code . '_');
 
       foreach ($this->getParameters() as $key) {
         $p = strtolower(substr($key, $cut_length));
@@ -47,7 +48,7 @@
 
         $cfg = new $class($this->code);
 
-        $this->app->saveCfgParam($key, $cfg->default, isset($cfg->title) ? $cfg->title : null, isset($cfg->description) ? $cfg->description : null, isset($cfg->set_func) ? $cfg->set_func : null);
+        $this->app->saveCfgParam($key, $cfg->default, $cfg->title ?? null, $cfg->description ?? null, $cfg->set_func ?? null);
       }
     }
 
@@ -89,7 +90,7 @@
 
       $cut = 'CLICSHOPPING_APP_STRIPE_' . $this->code . '_';
 
-      $cut_length = strlen($cut);
+      $cut_length = \strlen($cut);
 
       foreach ($this->getParameters() as $key) {
         $p = strtolower(substr($key, $cut_length));
@@ -99,15 +100,15 @@
         $cfg = new $class($this->code);
 
 
-        if (!defined($key)) {
-          $this->app->saveCfgParam($key, $cfg->default, isset($cfg->title) ? $cfg->title : null, isset($cfg->description) ? $cfg->description : null, isset($cfg->set_func) ? $cfg->set_func : null);
+        if (!\defined($key)) {
+          $this->app->saveCfgParam($key, $cfg->default, $cfg->title ?? null, $cfg->description ?? null, $cfg->set_func ?? null);
         }
 
         if ($cfg->app_configured !== false) {
           if (is_numeric($cfg->sort_order)) {
             $counter = (int)$cfg->sort_order;
           } else {
-            $counter = count($result);
+            $counter = \count($result);
           }
 
           while (true) {

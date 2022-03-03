@@ -15,6 +15,8 @@
 
   $CLICSHOPPING_MessageStack = Registry::get('MessageStack');
   $CLICSHOPPING_Stripe = Registry::get('Stripe');
+  $CLICSHOPPING_Composer = Registry::get('Composer');
+  $CLICSHOPPING_Template = Registry::get('TemplateAdmin');
 
   $CLICSHOPPING_Page = Registry::get('Site')->getPage();
 
@@ -40,7 +42,19 @@
     </div>
   </div>
   <div class="separator"></div>
+  <div class="col-md-12 alert alert-warning" role="alert">
+    <span><?php echo $CLICSHOPPING_Stripe->getDef('text_warning_group'); ?></span>
+  </div>
+
 <?php
+  if ($CLICSHOPPING_Composer->checkComposerInstalled() === false) {
+    echo '<div class="alert alert-warning" role="alert">' . $CLICSHOPPING_Stripe->getDef('text_error_composer') . '</div>';
+  }
+
+  if ($CLICSHOPPING_Composer->checkExecEnabled() === false) {
+    echo '<div class="alert alert-warning" role="alert">' . $CLICSHOPPING_Stripe->getDef('text_error_exec') . '</div>';
+  }
+
   if ($CLICSHOPPING_Stripe_Config->is_installed === true) {
 ?>
   <form name="Configure" action="<?php echo $CLICSHOPPING_Stripe->link('Configure&Process&module=' . $current_module); ?>" method="post">
@@ -68,7 +82,7 @@
     echo HTML::button($CLICSHOPPING_Stripe->getDef('button_save'), null, null, 'success');
 
     if ($CLICSHOPPING_Stripe->getConfigModuleInfo($current_module, 'is_uninstallable') === true) {
-        echo '<span class="float-end">' . HTML::button($CLICSHOPPING_Stripe->getDef('button_dialog_uninstall'), null, '#', 'warning', ['params' => 'data-toggle="modal" data-target="#ppUninstallModal"']) . '</span>';
+        echo '<span class="float-end">' . HTML::button($CLICSHOPPING_Stripe->getDef('button_dialog_uninstall'), null, '#', 'warning', ['params' => 'data-bs-toggle="modal" data-bs-target="#ppUninstallModal"']) . '</span>';
     }
 ?>
 
@@ -80,7 +94,7 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
               <h4 class="modal-title"><?php echo $CLICSHOPPING_Stripe->getDef('dialog_uninstall_title'); ?></h4>
             </div>
             <div class="modal-body">
@@ -89,7 +103,7 @@
             <div class="modal-footer">
               <?php echo HTML::button($CLICSHOPPING_Stripe->getDef('button_delete'), null, $CLICSHOPPING_Stripe->link('Configure&Delete&module=' . $current_module), 'danger'); ?>
               <?php echo HTML::button($CLICSHOPPING_Stripe->getDef('button_uninstall'), null, $CLICSHOPPING_Stripe->link('Configure&Uninstall&module=' . $current_module), 'danger'); ?>
-              <?php echo HTML::button($CLICSHOPPING_Stripe->getDef('button_cancel'), null, '#', 'warning',  ['params' => 'data-dismiss="modal"']); ?>
+              <?php echo HTML::button($CLICSHOPPING_Stripe->getDef('button_cancel'), null, '#', 'warning',  ['params' => 'data-bs-dismiss="modal"']); ?>
             </div>
           </div>
         </div>
