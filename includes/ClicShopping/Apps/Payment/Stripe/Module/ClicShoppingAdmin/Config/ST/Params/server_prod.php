@@ -15,7 +15,7 @@
 
   class server_prod extends \ClicShopping\Apps\Payment\Stripe\Module\ClicShoppingAdmin\Config\ConfigParamAbstract {
     public $default = 'False';
-    public $sort_order = 10;
+    public ?int $sort_order = 15;
 
     protected function init() {
       $this->title = $this->app->getDef('cfg_stripe_server_prod_title');
@@ -25,8 +25,8 @@
     public function getInputField()  {
       $value = $this->getInputValue();
 
-      $input =  HTML::radioField($this->key, 'True', $value, 'id="' . $this->key . '1" autocomplete="off"') . $this->app->getDef('cfg_stripe_server_prod_true') . ' ';
-      $input .=  HTML::radioField($this->key, 'False', $value, 'id="' . $this->key . '2" autocomplete="off"') . $this->app->getDef('cfg_stripe_server_prod_false');
+      $input = HTML::radioField($this->key, 'True', $value, 'id="' . $this->key . '1" autocomplete="off"') . $this->app->getDef('cfg_stripe_server_prod_true') . ' ';
+      $input .= HTML::radioField($this->key, 'False', $value, 'id="' . $this->key . '2" autocomplete="off"') . $this->app->getDef('cfg_stripe_server_prod_false');
 
       return $input;
     }

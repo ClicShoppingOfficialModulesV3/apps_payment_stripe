@@ -15,16 +15,14 @@
 
   use ClicShopping\Apps\Payment\Stripe\Module\Payment\ST as PaymentStripeST;
 
-  require_once(CLICSHOPPING_BASE_DIR . 'Apps/Payment/Stripe/API/StripeApi/vendor/autoload.php');
-
   use Stripe\Event as StripeEvent;
 
   class ST extends \ClicShopping\OM\PagesAbstract
   {
     protected $file = null;
-    protected $use_site_template = false;
+    protected bool $use_site_template = false;
     protected $pm;
-    protected $lang;
+    protected mixed $lang;
 
     protected function init()
     {
@@ -33,7 +31,7 @@
 
       $this->pm = new PaymentStripeST();
 
-      if (!defined('CLICSHOPPING_APP_STRIPE_ST_STATUS') && CLICSHOPPING_APP_STRIPE_ST_STATUS == 'False') {
+      if (!\defined('CLICSHOPPING_APP_STRIPE_ST_STATUS') && CLICSHOPPING_APP_STRIPE_ST_STATUS == 'False') {
         return false;
       }
 
@@ -53,15 +51,18 @@
       }
 
 //      $stripe_sca = StripeAPI();
+
 // Handle the event
       switch ($event->type) {
         case 'payment_intent.succeeded':
-          $paymentIntent = $event->data->object; // contains a \Stripe\PaymentIntent
-          //handlePaymentIntentSucceeded($paymentIntent);
+          $event->data->object;
+//          $paymentIntent = $event->data->object; // contains a \Stripe\PaymentIntent
+//handlePaymentIntentSucceeded($paymentIntent);
           break;
         case 'payment_method.attached':
-          $paymentMethod = $event->data->object; // contains a \Stripe\PaymentMethod
-          //handlePaymentMethodAttached($paymentMethod);
+          $event->data->object;
+//          $paymentMethod = $event->data->object; // contains a \Stripe\PaymentMethod
+//handlePaymentMethodAttached($paymentMethod);
           break;
         // ... handle other event types
         default:

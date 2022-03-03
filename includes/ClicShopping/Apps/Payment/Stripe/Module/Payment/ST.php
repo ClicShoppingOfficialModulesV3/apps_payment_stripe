@@ -21,14 +21,19 @@
 
   use Stripe\PaymentIntent;
 
-  class ST implements \ClicShopping\OM\Modules\PaymentInterface  {
-    public $code;
+  class ST implements \ClicShopping\OM\Modules\PaymentInterface
+  {
+    public string $code;
     public $title;
     public $description;
-    public $enabled;
+    public $enabled = false;
     public mixed $app;
-    public $sort_order;
     protected $currency;
+    public $signature;
+    public $public_title;
+    public ?int $sort_order = 0;
+    protected $api_version;
+    public $group;
 
     protected $intent;
     protected $private_key;
@@ -57,7 +62,7 @@
       $this->public_title = $this->app->getDef('module_stripe_public_title');
 
 // Activation module du paiement selon les groupes B2B
-      if (defined('CLICSHOPPING_APP_STRIPE_ST_STATUS')) {
+      if (\defined('CLICSHOPPING_APP_STRIPE_ST_STATUS')) {
         if ($CLICSHOPPING_Customer->getCustomersGroupID() != 0) {
           if (B2BCommon::getPaymentUnallowed($this->code)) {
             if (CLICSHOPPING_APP_STRIPE_ST_STATUS == 'True') {
@@ -83,19 +88,20 @@
         }
 
         if ( $this->enabled === true ) {
-          if ( isset($CLICSHOPPING_Order) && is_object($CLICSHOPPING_Order)) {
+          if ( isset($CLICSHOPPING_Order) && \is_object($CLICSHOPPING_Order)) {
             $this->update_status();
           }
         }
 
-        if (defined('CLICSHOPPING_APP_STRIPE_ST_PRIVATE_KEY') && defined('CLICSHOPPING_APP_STRIPE_ST_PUBLIC_KEY')) {
+        if (CLICSHOPPING_APP_STRIPE_ST_SERVER_PROD == 'True') {
           $this->private_key = CLICSHOPPING_APP_STRIPE_ST_PRIVATE_KEY;
           $this->public_key = CLICSHOPPING_APP_STRIPE_ST_PUBLIC_KEY;
         } else {
-          $this->enabled = false;
+          $this->private_key = CLICSHOPPING_APP_STRIPE_ST_PRIVATE_KEY_TEST;
+          $this->public_key = CLICSHOPPING_APP_STRIPE_ST_PUBLIC_KEY_TEST;
         }
 
-        $this->sort_order = defined('CLICSHOPPING_APP_STRIPE_ST_SORT_ORDER') ? CLICSHOPPING_APP_STRIPE_ST_SORT_ORDER : 0;
+        $this->sort_order = \defined('CLICSHOPPING_APP_STRIPE_ST_SORT_ORDER') ? CLICSHOPPING_APP_STRIPE_ST_SORT_ORDER : 0;
       }
     }
 
@@ -105,14 +111,15 @@
       if ( ($this->enabled === true) && ((int)CLICSHOPPING_APP_STRIPE_ST_ZONE > 0)) {
         $check_flag = false;
 
-        $Qcheck = $this->app->db->get('zones_to_geo_zones', 'zone_id', ['geo_zone_id' => CLICSHOPPING_APP_STRIPE_ST_ZONE,
+        $Qcheck = $this->app->db->get('zones_to_geo_zones', 'zone_id', [
+          'geo_zone_id' => CLICSHOPPING_APP_STRIPE_ST_ZONE,
           'zone_country_id' => $CLICSHOPPING_Order->delivery['country']['id']
         ],
           'zone_id'
         );
 
         while ($Qcheck->fetch()) {
-          if (($Qcheck->valueInt('zone_id') < 1) || ($Qcheck->valueInt('zone_id') == $CLICSHOPPING_Order->delivery['zone_id'])) {
+          if (($Qcheck->valueInt('zone_id') < 1) || ($Qcheck->valueInt('zone_id') === $CLICSHOPPING_Order->delivery['zone_id'])) {
             $check_flag = true;
             break;
           }
@@ -141,7 +148,8 @@
         }
       }
 
-      return ['id' => $this->app->vendor . '\\' . $this->app->code . '\\' . $this->code,
+      return [
+        'id' => $this->app->vendor . '\\' . $this->app->code . '\\' . $this->code,
         'module' => $this->public_title
       ];
     }
@@ -177,7 +185,7 @@ pre_confirmation_check()
 
       $i = 0;
 
-      if (count($CLICSHOPPING_Order->products) < 7) {
+      if (\count($CLICSHOPPING_Order->products) < 7) {
         foreach ($CLICSHOPPING_Order->products as $product) {
           $i++;
 
@@ -207,7 +215,8 @@ pre_confirmation_check()
           $this->intent->currency = $currency;
           $this->intent->metadata = $metadata;
 
-          $response = $this->intent->save();
+          $this->intent->save();
+//          $response = $this->intent->save();
 
         } catch (exception $err) {
           //$this->event_log($customer_id, 'page create intent', $stripe_payment_intent_id, $err->getMessage());
@@ -218,10 +227,13 @@ pre_confirmation_check()
 
       if (!isset($stripe_payment_intent_id)) {
         $description = STORE_NAME . ' - Order date time : ' . date('Y-m-d H:i:s');
+
+        $token  = $_POST['stripeToken'];
+
         $params = [
             'amount' => $total_amount,
             'currency' => $currency,
-            'source' => $_POST['stripeToken'],
+            'source' => $token,
             'setup_future_usage' => 'off_session',
             'description' => $description,
             'capture_method' => $capture_method,
@@ -248,12 +260,12 @@ pre_confirmation_check()
       $content .= '<input type="hidden" id="intent_id" value="' . HTML::output($stripe_payment_intent_id) . '" />' .
                   '<input type="hidden" id="secret" value="' . HTML::output($this->intent->client_secret) . '" />';
       $content .= '<div id="stripe_table_new_card">' .
-                  '<div class="form-group"><label for="cardholder-name" class="control-label">' . $this->app->getDef('text_stripe_credit_card_owner') . '</label>' .
+                  '<div><label for="cardholder-name" class="control-label">' . $this->app->getDef('text_stripe_credit_card_owner') . '</label>' .
                   '<div><input type="text" id="cardholder-name" class="form-control" value="' . HTML::output($CLICSHOPPING_Order->billing['firstname'] . ' ' . $CLICSHOPPING_Order->billing['lastname']) . '" required></text></div>
                   </div>' .
                   '<div class="separator"></div>' .
-                  '<div class="form-group"><label for="card-element" class="control-label">' . $this->app->getDef('text_stripe_credit_card_type') . '</label>' .
-                  '<div id="card-element" class="col-md-12"></div>
+                  '<div><label for="card-element" class="control-label">' . $this->app->getDef('text_stripe_credit_card_type') . '</label>' .
+                  '<div id="card-element" class="col-md-5"></div>
                   </div>';
 
 /*
@@ -298,16 +310,29 @@ pre_confirmation_check()
       $CLICSHOPPING_Order = Registry::get('Order');
 
       $orders_id = $CLICSHOPPING_Order->getLastOrderId();
+
+      if (empty($orders_id) || $orders_id == 0 || \is_null($orders_id)) {
+        $Qorder = $CLICSHOPPING_Order->db->prepare('select orders_id
+                                                    from :table_orders                                                    
+                                                    order by orders_id desc
+                                                    limit 1
+                                                   ');
+        $Qorder->execute();
+
+        $orders_id = $Qorder->valueInt('orders_id');
+      }
+
       $comment = $this->app->getDef('text_reference_transaction');
 
       if (CLICSHOPPING_APP_STRIPE_ST_ORDER_STATUS_ID == 0) {
-        $new_order_statud = DEFAULT_ORDERS_STATUS_ID;
+        $new_order_status = DEFAULT_ORDERS_STATUS_ID;
       } else {
-        $new_order_statud = CLICSHOPPING_APP_STRIPE_ST_ORDER_STATUS_ID;
+        $new_order_status = CLICSHOPPING_APP_STRIPE_ST_ORDER_STATUS_ID;
       }
 
-      $sql_data_array = ['orders_id' => $orders_id,
-        'orders_status_id' => (int)$new_order_statud,
+      $sql_data_array = [
+        'orders_id' => $orders_id,
+        'orders_status_id' => (int)$new_order_status,
         'date_added' => 'now()',
         'customer_notified' => '0',
         'comments' => $comment
@@ -315,7 +340,7 @@ pre_confirmation_check()
 
       $this->app->db->save('orders_status_history', $sql_data_array);
 
-      $sql_data_array = ['orders_status' => (int)$new_order_statud];
+      $sql_data_array = ['orders_status' => (int)$new_order_status];
       $sql_insert = ['orders_id' => (int)$orders_id];
 
       $this->app->db->save('orders', $sql_data_array, $sql_insert);
@@ -342,7 +367,7 @@ pre_confirmation_check()
 
     public function check() 
     {
-      return defined('CLICSHOPPING_APP_STRIPE_ST_STATUS') && (trim(CLICSHOPPING_APP_STRIPE_ST_STATUS) != '');
+      return \defined('CLICSHOPPING_APP_STRIPE_ST_STATUS') && (trim(CLICSHOPPING_APP_STRIPE_ST_STATUS) != '');
     }
 
     public function install() 
@@ -465,7 +490,6 @@ $(function() {
         }
     }
     function stripeShowNewCardFields() {
-
         $('#card-element').attr('id','save-card-element');
         $('#new-card-element').attr('id','card-element');
 
