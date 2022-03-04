@@ -15,7 +15,6 @@
   use ClicShopping\OM\Registry;
 
   use ClicShopping\OM\Cache;
-  use ClicShopping\OM\CLICSHOPPING;
 
   class Install extends \ClicShopping\OM\PagesActionsAbstract {
 
@@ -67,7 +66,7 @@
 
         $languages = $CLICSHOPPING_Language->getLanguages();
 
-        for ($i=0, $n=count($languages); $i<$n; $i++) {
+        for ($i=0, $n=\count($languages); $i<$n; $i++) {
 
           $language_id = $languages[$i]['id'];
 
@@ -80,7 +79,6 @@
           $sql_data_array = array_merge($sql_data_array, $insert_sql_data);
 
           $CLICSHOPPING_Db->save('administrator_menu_description', $sql_data_array );
-
         }
 
         Cache::clear('menu-administrator');
